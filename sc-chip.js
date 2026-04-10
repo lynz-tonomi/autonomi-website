@@ -1,4 +1,6 @@
+// ============ 7. SUPPLY CHAIN AI SECTION FIX ============
 (function(){
+  setTimeout(function(){
   var sec=document.getElementById('autonomi-ai');
   if(!sec)return;
   // Section layout: header text on top, video below
@@ -469,3 +471,4 @@
   // Pin + zoom is handled by the unified timeline in the circuit animation block above
 
   },500);
+})();
