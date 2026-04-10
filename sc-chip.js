@@ -131,7 +131,7 @@
   // Hide original sc-header paragraphs (replaced by moved native desc above)
   if(hdr){
     var pars=hdr.querySelectorAll('p.sc-desc');
-    pars.forEach(function(p){p.style.display='none';});
+    // Description paragraph stays visible (Autonomi layout)
   }
 
   // ── INJECT AI CHIP CIRCUIT SVG WITH SCROLL-DRIVEN EXPANDING TRACES ──
@@ -313,7 +313,7 @@
           });
 
           // Phase 2 (2–5): begin zoom into the chip
-          tl.to(scFlowEl,{scale:2.8,ease:'power1.in',duration:3},2);
+          tl.to(scFlowEl,{scale:3.2,ease:'power1.inOut',duration:2},0);
 
           // Phase 3 (3–4.5): background circuit image fades in at full-view zoom
           if(circBgEl){
@@ -321,7 +321,7 @@
           }
 
           // Phase 4 (4.5–7): continue zoom + fade out module cards + fade to white
-          tl.to(scFlowEl,{scale:6,ease:'power2.in',duration:2.5},4.5);
+          tl.to(scFlowEl,{scale:6,ease:'power2.in',duration:2.5},2);
           mods.forEach(function(card,i){
             tl.to(card,{opacity:0,duration:0.8},4.5+i*0.04);
           });
