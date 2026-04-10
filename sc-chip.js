@@ -62,16 +62,7 @@
     // Ensure parent section has proper height for video
     var vidSection=vidWrap.closest('section');
     if(vidSection){vidSection.style.minHeight='auto';vidSection.style.overflow='hidden'}
-  } else {
-    vidWrap=document.createElement('div');
-    vidWrap.style.cssText='position:relative;width:100%;overflow:visible';
-    scVid=document.createElement('video');
-    scVid.src='https://lynz-tonomi.github.io/macrobrands/schero-web3.mp4';
-    scVid.muted=true;scVid.loop=true;scVid.playsInline=true;
-    scVid.style.cssText='width:100%;height:auto;display:block;opacity:1';
-    vidWrap.appendChild(scVid);
-    sec.appendChild(vidWrap);
-  }
+  } else { return; }
   // Hide the original video section — only the pin video will be used
   // PATCH: skip hiding when vidParent IS #autonomi-ai (LynZ layout has video nested inside the section)
   var vidParent=vidWrap.closest('section')||vidWrap.parentElement;
@@ -79,7 +70,7 @@
   scVid.pause();
   // Create pin video container with 7-segment ping-pong player
   var pinVidWrap=document.createElement('div');
-  pinVidWrap.style.cssText='position:absolute;inset:0;z-index:20;overflow:hidden;opacity:0';
+  var existingPvw=sec.querySelector('.pin-vid-wrap'); if(existingPvw){existingPvw.innerHTML='';pinVidWrap=existingPvw;pinVidWrap.style.cssText='position:relative;width:100%;height:100%;overflow:hidden;background:#000;opacity:1';} else {pinVidWrap.style.cssText='position:absolute;inset:0;z-index:20;overflow:hidden;opacity:0';}
   pinVidWrap.className='pin-vid-wrap';
 
   // 7 supply chain video segments — played back-to-back via two alternating video elements
@@ -91,7 +82,7 @@
   var vidA=document.createElement('video');
   var vidB=document.createElement('video');
   [vidA,vidB].forEach(function(v){
-    v.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;';
+    v.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;background:#000;';
     v.muted=true;v.playsInline=true;v.preload='auto';
     v.setAttribute('muted','');v.setAttribute('playsinline','');
     pinVidWrap.appendChild(v);
