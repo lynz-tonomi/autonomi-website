@@ -62,7 +62,7 @@
     // Ensure parent section has proper height for video
     var vidSection=vidWrap.closest('section');
     if(vidSection){vidSection.style.minHeight='auto';vidSection.style.overflow='hidden'}
-  } else { return; }
+  } else { scVid=document.createElement('video'); scVid.muted=true; scVid.loop=true; scVid.playsInline=true; vidWrap=document.createElement('div'); vidWrap.style.cssText='display:none'; vidWrap.appendChild(scVid); sec.appendChild(vidWrap); }
   // Hide the original video section — only the pin video will be used
   // PATCH: skip hiding when vidParent IS #autonomi-ai (LynZ layout has video nested inside the section)
   var vidParent=vidWrap.closest('section')||vidWrap.parentElement;
