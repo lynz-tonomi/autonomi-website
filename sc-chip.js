@@ -293,7 +293,7 @@
           var tl=gsap.timeline({
             scrollTrigger:{
               trigger:pinSec,
-              start:'top top',
+              start:'top center',
               end:'+=250%',
               scrub:0.5,
               pin:true,
@@ -329,7 +329,9 @@
 
           // Phase 5 (7.5–9): video section fades in over the white
           if(window._pinVidWrap){
-            /* keep pinVidWrap inside sc-video-frame for native 16:9 */
+            pinSec.appendChild(window._pinVidWrap);
+            // Make the moved pin-vid-wrap fill the pinned section as a full overlay
+            window._pinVidWrap.style.cssText='position:absolute;inset:0;width:100%;height:100%;overflow:hidden;background:#000;opacity:0;z-index:18;';
             // fromTo guarantees pinVidWrap starts hidden even after scrub-reverse
             tl.fromTo(window._pinVidWrap,{opacity:0},{opacity:1,ease:'power2.out',duration:1.5,
               onStart:function(){
