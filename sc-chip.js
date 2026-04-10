@@ -268,7 +268,7 @@
           tl.to(scFlowEl,{opacity:0,ease:'power2.in',duration:1.5},6.5);
           tl.to(pinSec,{backgroundColor:'#000',ease:'power1.in',duration:1.5},6.5);
           if(window._pinVidWrap){
-            pinSec.appendChild(window._pinVidWrap);
+            /* keep pinVidWrap inside sc-video-frame for native 16:9 */
             tl.to(window._pinVidWrap,{opacity:1,ease:'power2.out',duration:1.5,
               onStart:function(){
                 var v=window._pinVidEl;
@@ -329,7 +329,7 @@
 
           // Phase 5 (7.5–9): video section fades in over the white
           if(window._pinVidWrap){
-            pinSec.appendChild(window._pinVidWrap);
+            /* keep pinVidWrap inside sc-video-frame for native 16:9 */
             // fromTo guarantees pinVidWrap starts hidden even after scrub-reverse
             tl.fromTo(window._pinVidWrap,{opacity:0},{opacity:1,ease:'power2.out',duration:1.5,
               onStart:function(){
