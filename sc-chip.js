@@ -205,7 +205,7 @@
         });
         // Build a single timeline for all circuit animations, scrubbed by the pin
         var pinSec=document.getElementById('autonomi-ai');
-        var scFlowEl=document.querySelector('#sc-flow-viz');
+        var scFlowEl=document.querySelector('#ai-chip-svg');
         if(scFlowEl){scFlowEl.style.transformOrigin='50% 0%';scFlowEl.style.willChange='transform';}
         pinSec.style.overflow='clip';
         pinSec.style.backgroundColor='#111';
@@ -292,11 +292,11 @@
 
           var tl=gsap.timeline({
             scrollTrigger:{
-              trigger:pinSec,
-              start:'top top',
+              trigger:scFlow,
+              pin:pinSec,
+              start:'center center',
               end:'+=200%',
               scrub:0.6,
-              pin:true,
               pinSpacing:true,
               anticipatePin:1,
               invalidateOnRefresh:false
@@ -321,7 +321,7 @@
           }
 
           // Phase 4 (4.5–7): continue zoom + fade out module cards + fade to white
-          // second zoom phase removed — keep chip at 2.2 (full viewport width)
+          // second zoom removed - chip stays at 2.2
           mods.forEach(function(card,i){
             tl.to(card,{opacity:0,duration:0.8},4.5+i*0.04);
           });
