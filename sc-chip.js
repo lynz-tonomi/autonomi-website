@@ -292,11 +292,11 @@
 
           var tl=gsap.timeline({
             scrollTrigger:{
-              trigger:pinSec,
-              start:'top center',
-              end:'+=250%',
-              scrub:0.5,
-              pin:true,
+              trigger:scFlow,
+              pin:pinSec,
+              start:'center center',
+              end:'+=200%',
+              scrub:0.6,
               pinSpacing:true,
               anticipatePin:1,
               invalidateOnRefresh:true
