@@ -70,7 +70,7 @@
   scVid.pause();
   // Create pin video container with 7-segment ping-pong player
   var pinVidWrap=document.createElement('div');
-  var existingPvw=sec.querySelector('.pin-vid-wrap'); if(existingPvw){existingPvw.innerHTML='';pinVidWrap=existingPvw;pinVidWrap.style.cssText='position:relative;width:100%;height:100%;overflow:hidden;background:#000;opacity:1';} else {pinVidWrap.style.cssText='position:absolute;inset:0;z-index:20;overflow:hidden;opacity:0';}
+  pinVidWrap.style.cssText='position:absolute;inset:0;z-index:20;overflow:hidden;opacity:0';
   pinVidWrap.className='pin-vid-wrap';
 
   // 7 supply chain video segments — played back-to-back via two alternating video elements
@@ -82,7 +82,7 @@
   var vidA=document.createElement('video');
   var vidB=document.createElement('video');
   [vidA,vidB].forEach(function(v){
-    v.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;background:#000;';
+    v.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;';
     v.muted=true;v.playsInline=true;v.preload='auto';
     v.setAttribute('muted','');v.setAttribute('playsinline','');
     pinVidWrap.appendChild(v);
@@ -131,7 +131,7 @@
   // Hide original sc-header paragraphs (replaced by moved native desc above)
   if(hdr){
     var pars=hdr.querySelectorAll('p.sc-desc');
-    // Description paragraph stays visible (Autonomi layout)
+    // sc-desc stays visible (Autonomi layout)
   }
 
   // ── INJECT AI CHIP CIRCUIT SVG WITH SCROLL-DRIVEN EXPANDING TRACES ──
@@ -205,8 +205,8 @@
         });
         // Build a single timeline for all circuit animations, scrubbed by the pin
         var pinSec=document.getElementById('autonomi-ai');
-        var scFlowEl=document.querySelector('#ai-chip-svg');
-        if(scFlowEl){scFlowEl.style.transformOrigin='50% 0%';scFlowEl.style.willChange='transform';}
+        var scFlowEl=document.querySelector('#sc-flow-viz');
+        if(scFlowEl){scFlowEl.style.transformOrigin='50% 45%';scFlowEl.style.willChange='transform';}
         pinSec.style.overflow='clip';
         pinSec.style.backgroundColor='#111';
         var juncs=scFlow.querySelectorAll('.ai-junc');
@@ -216,7 +216,7 @@
 
         // Detect site layout: LynZ has the video element nested inside #autonomi-ai;
         // macrobrands has it in a sibling section. Pick the right cinematic per layout.
-        var isLynzLayout=!!sec.querySelector('video');
+        var isLynzLayout=false; // FORCE: use MACRO Brands timeline path (proven working)
         var circBgEl=scFlow.querySelector('.ai-circ-bg');
 
         if(!isLynzLayout){
@@ -268,7 +268,7 @@
           tl.to(scFlowEl,{opacity:0,ease:'power2.in',duration:1.5},6.5);
           tl.to(pinSec,{backgroundColor:'#000',ease:'power1.in',duration:1.5},6.5);
           if(window._pinVidWrap){
-            /* keep pinVidWrap inside sc-video-frame for native 16:9 */
+            pinSec.appendChild(window._pinVidWrap);
             tl.to(window._pinVidWrap,{opacity:1,ease:'power2.out',duration:1.5,
               onStart:function(){
                 var v=window._pinVidEl;
@@ -292,14 +292,14 @@
 
           var tl=gsap.timeline({
             scrollTrigger:{
-              trigger:scFlow,
-              pin:pinSec,
-              start:'center center',
-              end:'+=200%',
-              scrub:0.6,
+              trigger:pinSec,
+              start:'top top',
+              end:'+=250%',
+              scrub:0.5,
+              pin:true,
               pinSpacing:true,
               anticipatePin:1,
-              invalidateOnRefresh:false
+              invalidateOnRefresh:true
             }
           });
 
@@ -313,7 +313,7 @@
           });
 
           // Phase 2 (2–5): begin zoom into the chip
-          tl.to(scFlowEl,{scale:2.2,ease:'none',duration:2},0);
+          tl.to(scFlowEl,{scale:2.8,ease:'power1.in',duration:3},2);
 
           // Phase 3 (3–4.5): background circuit image fades in at full-view zoom
           if(circBgEl){
@@ -321,7 +321,7 @@
           }
 
           // Phase 4 (4.5–7): continue zoom + fade out module cards + fade to white
-          // second zoom removed - chip stays at 2.2
+          tl.to(scFlowEl,{scale:6,ease:'power2.in',duration:2.5},4.5);
           mods.forEach(function(card,i){
             tl.to(card,{opacity:0,duration:0.8},4.5+i*0.04);
           });
@@ -330,8 +330,6 @@
           // Phase 5 (7.5–9): video section fades in over the white
           if(window._pinVidWrap){
             pinSec.appendChild(window._pinVidWrap);
-            // Make the moved pin-vid-wrap fill the pinned section as a full overlay
-            window._pinVidWrap.style.cssText='position:absolute;inset:0;width:100%;height:100%;overflow:hidden;background:#000;opacity:0;z-index:18;';
             // fromTo guarantees pinVidWrap starts hidden even after scrub-reverse
             tl.fromTo(window._pinVidWrap,{opacity:0},{opacity:1,ease:'power2.out',duration:1.5,
               onStart:function(){
