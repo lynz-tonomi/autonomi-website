@@ -70,7 +70,7 @@
   scVid.pause();
   // Create pin video container with 7-segment ping-pong player
   var pinVidWrap=document.createElement('div');
-  pinVidWrap.style.cssText='position:absolute;top:0;left:0;width:100%;height:100vh;z-index:20;overflow:hidden;visibility:hidden;background:#000';
+  pinVidWrap.style.cssText='position:absolute;top:0;left:0;width:100%;height:100vh;z-index:20;overflow:hidden;display:none;background:#000';
   pinVidWrap.className='pin-vid-wrap';
 
   // 7 supply chain video segments — played back-to-back via two alternating video elements
@@ -269,7 +269,8 @@
           tl.to(pinSec,{backgroundColor:'#000',ease:'power1.in',duration:1.5},6.5);
           if(window._pinVidWrap){
             pinSec.appendChild(window._pinVidWrap);
-            tl.to(window._pinVidWrap,{autoAlpha:1,ease:'power2.out',duration:1.5,
+            tl.set(window._pinVidWrap,{display:'block'},7.99);
+          tl.to(window._pinVidWrap,{autoAlpha:1,ease:'power2.out',duration:1.5,
               onStart:function(){
                 var v=window._pinVidEl;
                 v.currentTime=0;v.play().catch(function(){});
