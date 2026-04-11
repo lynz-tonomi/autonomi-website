@@ -70,7 +70,7 @@
   scVid.pause();
   // Create pin video container with 7-segment ping-pong player
   var pinVidWrap=document.createElement('div');
-  pinVidWrap.style.cssText='position:absolute;top:0;left:0;width:100%;height:100vh;z-index:20;overflow:hidden;display:none;background:#000';
+  pinVidWrap.style.cssText='position:absolute;top:auto;bottom:0;left:0;width:100%;height:50vh;z-index:1;overflow:hidden;background:#000';
   pinVidWrap.className='pin-vid-wrap';
 
   // 7 supply chain video segments — played back-to-back via two alternating video elements
@@ -226,12 +226,11 @@
           var tl=gsap.timeline({
             scrollTrigger:{
               trigger:pinSec,
-              start:'top top',
-              end:'+=200%',
-              scrub:0.3,
-              pin:true,
-              pinSpacing:true,
-              anticipatePin:1
+              start:'top bottom',
+              end:'bottom top',
+              scrub:0.6,
+              pin:false,
+              pinSpacing:false
             }
           });
 
@@ -249,7 +248,7 @@
           // 6.5-8: fade to black + SVG gone
 
           tl.to(paths,{strokeDashoffset:0,ease:'none',stagger:.003,duration:5},0);
-          tl.to(scFlowEl,{scale:6,ease:'power2.in',duration:8},0);
+          // scale removed — chip stays at scale 1 without pin
           tl.to(spawns,{opacity:1,ease:'none',stagger:.012,duration:3},1);
           tl.to(juncs,{opacity:.6,ease:'none',stagger:.003,duration:3},1.5);
           tl.to(hdr.querySelectorAll('h2, p, .sc-badge, .sc-learn-more-btn'),{opacity:0,duration:1},4.5);
@@ -265,12 +264,11 @@
           if(circBgEl){
             tl.to(circBgEl,{opacity:.4,ease:'power1.in',duration:1},4.5);
           }
-          tl.to(scFlowEl,{opacity:0,ease:'power2.in',duration:1.5},6.5);
-          tl.to(pinSec,{backgroundColor:'#000',ease:'power1.in',duration:1.5},6.5);
+          // chip opacity stays at 1 without pin
+          // bg stays at native sc-section color
           if(window._pinVidWrap){
             pinSec.appendChild(window._pinVidWrap);
-            tl.set(window._pinVidWrap,{display:'block'},7.99);
-          tl.to(window._pinVidWrap,{autoAlpha:1,ease:'power2.out',duration:1.5,
+            tl.to(window._pinVidWrap,{opacity:1,ease:'power2.out',duration:0.01,
               onStart:function(){
                 var v=window._pinVidEl;
                 v.currentTime=0;v.play().catch(function(){});
