@@ -446,6 +446,13 @@
         });
         // Force ScrollTrigger to recalculate after dynamic content injection
         ScrollTrigger.refresh();
+        // FIX: refresh again once the full page (including fonts and images) is loaded
+        // so ScrollTrigger recalculates pin positions against the final layout.
+        function scRefreshDefer(){if(window.ScrollTrigger)ScrollTrigger.refresh();}
+        if(document.readyState==='complete'){setTimeout(scRefreshDefer,500);}
+        else{window.addEventListener('load',function(){setTimeout(scRefreshDefer,500);});}
+        if(document.fonts&&document.fonts.ready){document.fonts.ready.then(function(){setTimeout(scRefreshDefer,300);});}
+        setTimeout(scRefreshDefer,3000);
         // Ensure pin-spacer wrapper gets dark bg to prevent white gap between supporting → supply chain
         requestAnimationFrame(function(){
           if(pinSec.parentElement&&pinSec.parentElement.classList.contains('pin-spacer')){
