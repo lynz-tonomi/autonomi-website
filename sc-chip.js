@@ -82,7 +82,7 @@
   var vidA=document.createElement('video');
   var vidB=document.createElement('video');
   [vidA,vidB].forEach(function(v){
-    v.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;';
+    v.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;background:#000;';
     v.muted=true;v.playsInline=true;v.preload='auto';
     v.setAttribute('muted','');v.setAttribute('playsinline','');
     pinVidWrap.appendChild(v);
