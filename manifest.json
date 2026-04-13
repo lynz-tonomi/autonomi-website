@@ -1,0 +1,16 @@
+{
+  "name": "LynZ Formulation Lab",
+  "short_name": "LynZ",
+  "start_url": "https://www.autonomi.llc/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#c9a84c",
+  "icons": [
+    {
+      "src": "https://cdn.prod.website-files.com/65d843430c6e27c634035fdb/69dc4a544f5fa5a634a85b91_Z-gold-256.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
