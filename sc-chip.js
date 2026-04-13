@@ -1,132 +1,247 @@
 (function(){
+  /* ============================================================
+     AUTONOMI SC-CHIP v22 — Cinematic Scroll Animation
+     - Waits for window.load + fonts.ready + GSAP availability
+     - Pin when chip centered in viewport
+     - Trace expansion + zoom scrubbed to scroll
+     - Charge particles flow through traces
+     - Fade to white → video reveal from white
+     ============================================================ */
+
   function go(){
     var sec = document.getElementById('autonomi-ai');
     if (!sec) return;
     if (sec.getAttribute('data-sc-init') === '1') return;
     sec.setAttribute('data-sc-init', '1');
 
+    // ── Section layout ──
     sec.style.cssText = 'position:relative;overflow:hidden;background:#0a0a0a;padding:80px 0 40px;min-height:auto';
-
     var hdr = sec.querySelector('.sc-header');
     if (hdr) {
       hdr.style.cssText = 'position:relative;z-index:2;text-align:center;max-width:860px;margin:0 auto;padding:0 40px 40px';
     }
 
-    // ----- Inject CSS keyframes for the pulse animations (no GSAP needed) -----
-    if (!document.getElementById('sc-chip-keyframes')) {
-      var css = document.createElement('style');
-      css.id = 'sc-chip-keyframes';
-      css.textContent = [
-        '@keyframes sc-ring-pulse{0%,100%{fill-opacity:.12;stroke-opacity:.8}50%{fill-opacity:.03;stroke-opacity:.3}}',
-        '@keyframes sc-inner-pulse{0%,100%{opacity:1}50%{opacity:.3}}',
-        '@keyframes sc-node-blink{0%,100%{opacity:1}50%{opacity:.2}}',
-        '#sc-flow-viz .ai-dept{animation:sc-ring-pulse 2.2s ease-in-out infinite}',
-        '#sc-flow-viz .ai-dept-inner{animation:sc-inner-pulse 1.4s ease-in-out infinite}',
-        '#sc-flow-viz .ai-node-b,#sc-flow-viz .ai-node-w{animation:sc-node-blink 1s ease-in-out infinite}',
-        /* Stagger via nth-child delays to avoid everything pulsing in sync */
-        '#sc-flow-viz .ai-dept:nth-child(2n){animation-delay:.4s}',
-        '#sc-flow-viz .ai-dept:nth-child(3n){animation-delay:.9s}',
-        '#sc-flow-viz .ai-dept:nth-child(5n){animation-delay:1.3s}',
-        '#sc-flow-viz .ai-dept-inner:nth-child(2n){animation-delay:.3s}',
-        '#sc-flow-viz .ai-dept-inner:nth-child(3n){animation-delay:.7s}',
-        '#sc-flow-viz .ai-node-b:nth-child(2n),#sc-flow-viz .ai-node-w:nth-child(2n){animation-delay:.3s}',
-        '#sc-flow-viz .ai-node-b:nth-child(3n),#sc-flow-viz .ai-node-w:nth-child(3n){animation-delay:.6s}',
-        '#sc-flow-viz .ai-node-b:nth-child(5n),#sc-flow-viz .ai-node-w:nth-child(5n){animation-delay:.9s}'
-      ].join('');
-      document.head.appendChild(css);
-    }
-
-    // ----- Build the AI chip SVG (same exact markup as MACRO Brands site18.js) -----
+    // ── Build AI chip SVG ──
     var target = hdr || sec;
     var chipWrap = document.createElement('div');
     chipWrap.id = 'sc-flow-viz';
-    chipWrap.className = 'sc-flow-viz';
-    chipWrap.style.cssText = 'max-width:1100px;margin:32px auto 0;position:relative;z-index:3';
+    chipWrap.style.cssText = 'max-width:1100px;margin:32px auto 0;position:relative;z-index:3;transform-origin:50% 45%;will-change:transform';
     chipWrap.innerHTML = '<svg id="ai-chip-svg" viewBox="-200 -120 1600 1100" width="100%" style="display:block;margin:0 auto;overflow:visible"><defs><filter id="aig" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><linearGradient id="scanGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff" stop-opacity="0"/><stop offset="35%" stop-color="#fff" stop-opacity="0"/><stop offset="46%" stop-color="#fff" stop-opacity=".08"/><stop offset="49%" stop-color="#fff" stop-opacity=".25"/><stop offset="50%" stop-color="#fff" stop-opacity=".9"/><stop offset="51%" stop-color="#fff" stop-opacity=".25"/><stop offset="54%" stop-color="#fff" stop-opacity=".08"/><stop offset="65%" stop-color="#fff" stop-opacity="0"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></linearGradient><linearGradient id="scanTrail" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff" stop-opacity="0"/><stop offset="30%" stop-color="#fff" stop-opacity="0"/><stop offset="50%" stop-color="#fff" stop-opacity=".04"/><stop offset="70%" stop-color="#fff" stop-opacity="0"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><rect x="508" y="308" width="184" height="184" rx="4" fill="#0a0a0a" stroke="#333" stroke-width="1"/><rect x="520" y="320" width="160" height="160" rx="14" fill="#1a1a1a" stroke="#fff" stroke-width="2.5" stroke-opacity=".7"/><rect x="526" y="326" width="148" height="148" rx="10" fill="none" stroke="#fff" stroke-width=".5" stroke-opacity=".85"/><rect x="545" y="345" width="110" height="110" rx="6" fill="#111" stroke="#fff" stroke-width="1" stroke-opacity=".7"/><rect x="554" y="354" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="570" y="354" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="586" y="354" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="602" y="354" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="618" y="354" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="634" y="354" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="554" y="370" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="570" y="370" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="586" y="370" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="602" y="370" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="618" y="370" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="634" y="370" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="554" y="386" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="570" y="386" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="586" y="386" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="602" y="386" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="618" y="386" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="634" y="386" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="554" y="402" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="570" y="402" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="586" y="402" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="602" y="402" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="618" y="402" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="634" y="402" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="554" y="418" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="570" y="418" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="586" y="418" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="602" y="418" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="618" y="418" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="634" y="418" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="554" y="434" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="570" y="434" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="586" y="434" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="602" y="434" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="618" y="434" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="634" y="434" width="6" height="4" rx=".5" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-width=".2" stroke-opacity=".08"/><rect x="556" y="420" width="28" height="12" rx="2" fill="none" stroke="#fff" stroke-width=".5" stroke-opacity=".9"/><text x="570" y="429" font-size="5" fill="#fff" fill-opacity=".2" text-anchor="middle" font-family="monospace">REG</text><rect x="596" y="420" width="28" height="12" rx="2" fill="none" stroke="#fff" stroke-width=".5" stroke-opacity=".9"/><text x="610" y="429" font-size="5" fill="#fff" fill-opacity=".2" text-anchor="middle" font-family="monospace">ALU</text><image href="https://lynz-tonomi.github.io/macrobrands/AI-small-blue.png" x="552" y="352" width="96" height="91" opacity=".85"/><clipPath id="scanClip"><rect x="508" y="308" width="184" height="184" rx="4"/></clipPath><rect x="508" y="308" width="184" height="184" fill="url(#scanTrail)" clip-path="url(#scanClip)" opacity=".5"><animate attributeName="y" values="308;492;308" dur="4s" repeatCount="indefinite"/></rect><rect x="508" y="308" width="184" height="184" fill="url(#scanGrad)" clip-path="url(#scanClip)" opacity=".8"><animate attributeName="y" values="308;492;308" dur="4s" repeatCount="indefinite"/></rect><line x1="508" y1="400" x2="692" y2="400" stroke="#fff" stroke-width="1" stroke-opacity=".7" clip-path="url(#scanClip)" filter="url(#aig)"><animate attributeName="y1" values="308;492;308" dur="4s" repeatCount="indefinite"/><animate attributeName="y2" values="308;492;308" dur="4s" repeatCount="indefinite"/></line><rect x="527" y="288" width="6" height="12" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="530" y1="300" x2="530" y2="308" stroke="#777" stroke-width="1.8"/><rect x="545" y="288" width="6" height="12" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="548" y1="300" x2="548" y2="308" stroke="#777" stroke-width="1.8"/><rect x="563" y="288" width="6" height="12" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="566" y1="300" x2="566" y2="308" stroke="#777" stroke-width="1.8"/><rect x="581" y="288" width="6" height="12" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="584" y1="300" x2="584" y2="308" stroke="#777" stroke-width="1.8"/><rect x="599" y="288" width="6" height="12" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="602" y1="300" x2="602" y2="308" stroke="#777" stroke-width="1.8"/><rect x="617" y="288" width="6" height="12" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="620" y1="300" x2="620" y2="308" stroke="#777" stroke-width="1.8"/><rect x="635" y="288" width="6" height="12" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="638" y1="300" x2="638" y2="308" stroke="#777" stroke-width="1.8"/><rect x="653" y="288" width="6" height="12" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="656" y1="300" x2="656" y2="308" stroke="#777" stroke-width="1.8"/><rect x="527" y="500" width="6" height="12" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="530" y1="492" x2="530" y2="500" stroke="#777" stroke-width="1.8"/><rect x="545" y="500" width="6" height="12" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="548" y1="492" x2="548" y2="500" stroke="#777" stroke-width="1.8"/><rect x="563" y="500" width="6" height="12" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="566" y1="492" x2="566" y2="500" stroke="#777" stroke-width="1.8"/><rect x="581" y="500" width="6" height="12" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="584" y1="492" x2="584" y2="500" stroke="#777" stroke-width="1.8"/><rect x="599" y="500" width="6" height="12" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="602" y1="492" x2="602" y2="500" stroke="#777" stroke-width="1.8"/><rect x="617" y="500" width="6" height="12" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="620" y1="492" x2="620" y2="500" stroke="#777" stroke-width="1.8"/><rect x="635" y="500" width="6" height="12" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="638" y1="492" x2="638" y2="500" stroke="#777" stroke-width="1.8"/><rect x="653" y="500" width="6" height="12" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="656" y1="492" x2="656" y2="500" stroke="#777" stroke-width="1.8"/><rect x="488" y="327" width="12" height="6" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="500" y1="330" x2="508" y2="330" stroke="#777" stroke-width="1.8"/><rect x="488" y="345" width="12" height="6" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="500" y1="348" x2="508" y2="348" stroke="#777" stroke-width="1.8"/><rect x="488" y="363" width="12" height="6" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="500" y1="366" x2="508" y2="366" stroke="#777" stroke-width="1.8"/><rect x="488" y="381" width="12" height="6" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="500" y1="384" x2="508" y2="384" stroke="#777" stroke-width="1.8"/><rect x="488" y="399" width="12" height="6" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="500" y1="402" x2="508" y2="402" stroke="#777" stroke-width="1.8"/><rect x="488" y="417" width="12" height="6" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="500" y1="420" x2="508" y2="420" stroke="#777" stroke-width="1.8"/><rect x="488" y="435" width="12" height="6" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="500" y1="438" x2="508" y2="438" stroke="#777" stroke-width="1.8"/><rect x="488" y="453" width="12" height="6" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="500" y1="456" x2="508" y2="456" stroke="#777" stroke-width="1.8"/><rect x="700" y="327" width="12" height="6" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="692" y1="330" x2="700" y2="330" stroke="#777" stroke-width="1.8"/><rect x="700" y="345" width="12" height="6" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="692" y1="348" x2="700" y2="348" stroke="#777" stroke-width="1.8"/><rect x="700" y="363" width="12" height="6" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="692" y1="366" x2="700" y2="366" stroke="#777" stroke-width="1.8"/><rect x="700" y="381" width="12" height="6" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="692" y1="384" x2="700" y2="384" stroke="#777" stroke-width="1.8"/><rect x="700" y="399" width="12" height="6" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="692" y1="402" x2="700" y2="402" stroke="#777" stroke-width="1.8"/><rect x="700" y="417" width="12" height="6" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="692" y1="420" x2="700" y2="420" stroke="#777" stroke-width="1.8"/><rect x="700" y="435" width="12" height="6" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="692" y1="438" x2="700" y2="438" stroke="#777" stroke-width="1.8"/><rect x="700" y="453" width="12" height="6" rx="1" fill="#555" stroke="#777" stroke-width=".5"/><line x1="692" y1="456" x2="700" y2="456" stroke="#777" stroke-width="1.8"/><path class="ai-trace" d="M488,330 L458,330 L438,310 L318,310 L303,300 L223,300" fill="none" stroke="#c9a84c" stroke-width="1.8" stroke-opacity="1" filter="url(#aig)"/><path class="ai-trace" d="M488,336 L458,336 L435,310 L290,310 L275,296 L175,296" fill="none" stroke="#fff" stroke-width="0.9" stroke-opacity="0.45" filter="url(#aig)"/><path class="ai-trace" d="M488,342 L458,342 L432,310 L262,310 L247,292 L127,292" fill="none" stroke="#fff" stroke-width="0.9" stroke-opacity="0.35" filter="url(#aig)"/><path class="ai-trace" d="M488,348 L458,348 L429,310 L234,310 L219,288 L79,288" fill="none" stroke="#c9a84c" stroke-width="0.9" stroke-opacity="0.5" filter="url(#aig)"/><path class="ai-trace" d="M488,354 L458,354 L426,310 L206,310 L191,284 L31,284" fill="none" stroke="#fff" stroke-width="1.8" stroke-opacity="0.85" filter="url(#aig)"/><path class="ai-trace" d="M488,365 L448,365 L433,355 L283,355 L263,360 L163,360" fill="none" stroke="#fff" stroke-width="0.8" stroke-opacity="0.3" filter="url(#aig)"/><path class="ai-trace" d="M488,372 L448,372 L431,367 L251,367 L231,375 L116,375" fill="none" stroke="#c9a84c" stroke-width="0.8" stroke-opacity="0.55" filter="url(#aig)"/><path class="ai-trace" d="M488,379 L448,379 L429,379 L219,379 L199,390 L69,390" fill="none" stroke="#fff" stroke-width="1.8" stroke-opacity="0.95" filter="url(#aig)"/><path class="ai-trace" d="M488,386 L448,386 L427,391 L187,391 L167,405 L22,405" fill="none" stroke="#c9a84c" stroke-width="0.8" stroke-opacity="0.4" filter="url(#aig)"/><path class="ai-trace" d="M488,393 L448,393 L425,403 L155,403 L135,420 L-25,420" fill="none" stroke="#fff" stroke-width="0.8" stroke-opacity="0.5" filter="url(#aig)"/><path class="ai-trace" d="M488,400 L453,400 L435,415 L305,415 L293,423 L203,423" fill="none" stroke="#fff" stroke-width="0.8" stroke-opacity="0.35" filter="url(#aig)"/><path class="ai-trace" d="M488,407 L453,407 L433,428 L283,428 L271,441 L163,441" fill="none" stroke="#c9a84c" stroke-width="1.6" stroke-opacity="0.8" filter="url(#aig)"/><path class="ai-trace" d="M488,414 L453,414 L431,441 L261,441 L249,459 L123,459" fill="none" stroke="#fff" stroke-width="0.8" stroke-opacity="0.45" filter="url(#aig)"/><path class="ai-trace" d="M488,421 L453,421 L429,454 L239,454 L227,477 L83,477" fill="none" stroke="#fff" stroke-width="0.8" stroke-opacity="0.3" filter="url(#aig)"/><path class="ai-trace" d="M488,428 L453,428 L427,467 L217,467 L205,495 L43,495" fill="none" stroke="#c9a84c" stroke-width="1.6" stroke-opacity="1" filter="url(#aig)"/><path class="ai-trace" d="M712,330 L742,330 L762,310 L882,310 L897,300 L977,300" fill="none" stroke="#c9a84c" stroke-width="1.8" stroke-opacity="0.9" filter="url(#aig)"/><path class="ai-trace" d="M712,336 L742,336 L765,310 L910,310 L925,296 L1025,296" fill="none" stroke="#fff" stroke-width="0.9" stroke-opacity="0.55" filter="url(#aig)"/><path class="ai-trace" d="M712,342 L742,342 L768,310 L938,310 L953,292 L1073,292" fill="none" stroke="#fff" stroke-width="0.9" stroke-opacity="0.4" filter="url(#aig)"/><path class="ai-trace" d="M712,348 L742,348 L771,310 L966,310 L981,288 L1121,288" fill="none" stroke="#c9a84c" stroke-width="1.8" stroke-opacity="0.85" filter="url(#aig)"/><path class="ai-trace" d="M712,354 L742,354 L774,310 L994,310 L1009,284 L1169,284" fill="none" stroke="#fff" stroke-width="0.9" stroke-opacity="0.45" filter="url(#aig)"/><path class="ai-trace" d="M712,365 L752,365 L767,355 L917,355 L937,360 L1037,360" fill="none" stroke="#fff" stroke-width="0.8" stroke-opacity="0.35" filter="url(#aig)"/><path class="ai-trace" d="M712,372 L752,372 L769,367 L949,367 L969,375 L1084,375" fill="none" stroke="#c9a84c" stroke-width="0.8" stroke-opacity="0.5" filter="url(#aig)"/><path class="ai-trace" d="M712,379 L752,379 L771,379 L981,379 L1001,390 L1131,390" fill="none" stroke="#fff" stroke-width="1.8" stroke-opacity="1" filter="url(#aig)"/><path class="ai-trace" d="M712,386 L752,386 L773,391 L1013,391 L1033,405 L1178,405" fill="none" stroke="#c9a84c" stroke-width="0.8" stroke-opacity="0.3" filter="url(#aig)"/><path class="ai-trace" d="M712,393 L752,393 L775,403 L1045,403 L1065,420 L1225,420" fill="none" stroke="#fff" stroke-width="0.8" stroke-opacity="0.55" filter="url(#aig)"/><path class="ai-trace" d="M712,400 L747,400 L765,415 L895,415 L907,423 L997,423" fill="none" stroke="#fff" stroke-width="0.8" stroke-opacity="0.4" filter="url(#aig)"/><path class="ai-trace" d="M712,407 L747,407 L767,428 L917,428 L929,441 L1037,441" fill="none" stroke="#c9a84c" stroke-width="1.6" stroke-opacity="1" filter="url(#aig)"/><path class="ai-trace" d="M712,414 L747,414 L769,441 L939,441 L951,459 L1077,459" fill="none" stroke="#fff" stroke-width="0.8" stroke-opacity="0.5" filter="url(#aig)"/><path class="ai-trace" d="M712,421 L747,421 L771,454 L961,454 L973,477 L1117,477" fill="none" stroke="#fff" stroke-width="0.8" stroke-opacity="0.35" filter="url(#aig)"/><path class="ai-trace" d="M712,428 L747,428 L773,467 L983,467 L995,495 L1157,495" fill="none" stroke="#c9a84c" stroke-width="1.6" stroke-opacity="0.85" filter="url(#aig)"/><path class="ai-trace" d="M530,288 L530,263 L500,243 L500,203 L480,188 L420,188" fill="none" stroke="#fff" stroke-width="1.6" stroke-opacity="0.95" filter="url(#aig)"/><path class="ai-trace" d="M538,288 L538,263 L493,235 L493,180 L463,160 L378,160" fill="none" stroke="#c9a84c" stroke-width="0.8" stroke-opacity="0.45" filter="url(#aig)"/><path class="ai-trace" d="M546,288 L546,263 L486,227 L486,157 L446,132 L336,132" fill="none" stroke="#fff" stroke-width="0.8" stroke-opacity="0.3" filter="url(#aig)"/><path class="ai-trace" d="M554,288 L554,263 L479,219 L479,134 L429,104 L294,104" fill="none" stroke="#c9a84c" stroke-width="0.8" stroke-opacity="0.55" filter="url(#aig)"/><path class="ai-trace" d="M575,288 L575,238 L567,223 L567,163" fill="none" stroke="#fff" stroke-width="0.7" stroke-opacity="0.4" filter="url(#aig)"/><path class="ai-trace" d="M593,288 L593,218 L593,203 L593,128" fill="none" stroke="#fff" stroke-width="1.5" stroke-opacity="0.8" filter="url(#aig)"/><path class="ai-trace" d="M611,288 L611,198 L619,183 L619,93" fill="none" stroke="#fff" stroke-width="0.7" stroke-opacity="0.45" filter="url(#aig)"/><path class="ai-trace" d="M640,288 L640,263 L670,243 L670,203 L690,188 L750,188" fill="none" stroke="#c9a84c" stroke-width="0.8" stroke-opacity="0.35" filter="url(#aig)"/><path class="ai-trace" d="M648,288 L648,263 L693,235 L693,180 L723,160 L808,160" fill="none" stroke="#fff" stroke-width="0.8" stroke-opacity="0.5" filter="url(#aig)"/><path class="ai-trace" d="M656,288 L656,263 L716,227 L716,157 L756,132 L866,132" fill="none" stroke="#c9a84c" stroke-width="0.8" stroke-opacity="0.3" filter="url(#aig)"/><path class="ai-trace" d="M664,288 L664,263 L739,219 L739,134 L789,104 L924,104" fill="none" stroke="#fff" stroke-width="1.6" stroke-opacity="1" filter="url(#aig)"/><path class="ai-trace" d="M530,512 L530,537 L500,557 L500,597 L480,612 L420,612" fill="none" stroke="#fff" stroke-width="1.6" stroke-opacity="0.9" filter="url(#aig)"/><path class="ai-trace" d="M538,512 L538,537 L493,565 L493,620 L463,640 L378,640" fill="none" stroke="#c9a84c" stroke-width="0.8" stroke-opacity="0.55" filter="url(#aig)"/><path class="ai-trace" d="M546,512 L546,537 L486,573 L486,643 L446,668 L336,668" fill="none" stroke="#fff" stroke-width="0.8" stroke-opacity="0.4" filter="url(#aig)"/><path class="ai-trace" d="M554,512 L554,537 L479,581 L479,666 L429,696 L294,696" fill="none" stroke="#c9a84c" stroke-width="1.6" stroke-opacity="0.85" filter="url(#aig)"/><path class="ai-trace" d="M575,512 L575,562 L567,577 L567,637" fill="none" stroke="#fff" stroke-width="0.7" stroke-opacity="0.5" filter="url(#aig)"/><path class="ai-trace" d="M593,512 L593,582 L593,597 L593,672" fill="none" stroke="#fff" stroke-width="1.5" stroke-opacity="1" filter="url(#aig)"/><path class="ai-trace" d="M611,512 L611,602 L619,617 L619,707" fill="none" stroke="#fff" stroke-width="0.7" stroke-opacity="0.35" filter="url(#aig)"/><path class="ai-trace" d="M640,512 L640,537 L670,557 L670,597 L690,612 L750,612" fill="none" stroke="#c9a84c" stroke-width="0.8" stroke-opacity="0.45" filter="url(#aig)"/><path class="ai-trace" d="M648,512 L648,537 L693,565 L693,620 L723,640 L808,640" fill="none" stroke="#fff" stroke-width="0.8" stroke-opacity="0.3" filter="url(#aig)"/><path class="ai-trace" d="M656,512 L656,537 L716,573 L716,643 L756,668 L866,668" fill="none" stroke="#c9a84c" stroke-width="1.6" stroke-opacity="1" filter="url(#aig)"/><path class="ai-trace" d="M664,512 L664,537 L739,581 L739,666 L789,696 L924,696" fill="none" stroke="#fff" stroke-width="0.8" stroke-opacity="0.55" filter="url(#aig)"/><path class="ai-trace" d="M488,340 L438,340 L398,300 L218,300 L193,275 L73,275" fill="none" stroke="#fff" stroke-width="1.4" stroke-opacity="0.8" filter="url(#aig)"/><path class="ai-trace" d="M488,348 L443,348 L408,313 L248,313 L218,293 L78,293" fill="none" stroke="#c9a84c" stroke-width="0.7" stroke-opacity="0.35" filter="url(#aig)"/><path class="ai-trace" d="M712,340 L762,340 L802,300 L982,300 L1007,275 L1127,275" fill="none" stroke="#fff" stroke-width="0.7" stroke-opacity="0.5" filter="url(#aig)"/><path class="ai-trace" d="M712,348 L757,348 L792,313 L952,313 L982,293 L1122,293" fill="none" stroke="#c9a84c" stroke-width="0.7" stroke-opacity="0.3" filter="url(#aig)"/><path class="ai-trace" d="M488,435 L438,435 L398,475 L218,475 L193,500 L73,500" fill="none" stroke="#fff" stroke-width="1.4" stroke-opacity="0.8" filter="url(#aig)"/><path class="ai-trace" d="M488,443 L443,443 L408,478 L248,478 L218,498 L78,498" fill="none" stroke="#c9a84c" stroke-width="0.7" stroke-opacity="0.4" filter="url(#aig)"/><path class="ai-trace" d="M712,435 L762,435 L802,475 L982,475 L1007,500 L1127,500" fill="none" stroke="#fff" stroke-width="0.7" stroke-opacity="0.5" filter="url(#aig)"/><path class="ai-trace" d="M712,443 L757,443 L792,478 L952,478 L982,498 L1122,498" fill="none" stroke="#c9a84c" stroke-width="0.7" stroke-opacity="0.35" filter="url(#aig)"/><path class="ai-trace" d="M488,380 L88,380 L68,390 L-82,390" fill="none" stroke="#fff" stroke-width="1.4" stroke-opacity="0.8" filter="url(#aig)"/><path class="ai-trace" d="M488,395 L108,395 L93,387 L-87,387" fill="none" stroke="#c9a84c" stroke-width="0.7" stroke-opacity="0.3" filter="url(#aig)"/><path class="ai-trace" d="M712,380 L1112,380 L1132,390 L1282,390" fill="none" stroke="#fff" stroke-width="0.7" stroke-opacity="0.55" filter="url(#aig)"/><path class="ai-trace" d="M712,395 L1092,395 L1107,387 L1287,387" fill="none" stroke="#c9a84c" stroke-width="0.7" stroke-opacity="0.4" filter="url(#aig)"/><rect x="-28" y="172" width="16" height="16" rx="2" fill="#111" stroke="#fff" stroke-width=".5" stroke-opacity=".9"/><circle cx="-23" cy="177" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="-17" cy="177" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="-23" cy="183" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="-17" cy="183" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="178" cy="118" r="1" fill="#fff" fill-opacity=".15"/><circle cx="182" cy="118" r="1" fill="#fff" fill-opacity=".15"/><circle cx="178" cy="122" r="1" fill="#fff" fill-opacity=".15"/><circle cx="182" cy="122" r="1" fill="#fff" fill-opacity=".15"/><path d="M350,195 L355,200 L350,205 L345,200 Z" fill="#111" stroke="#fff" stroke-width=".5" stroke-opacity=".18"/><rect x="292" y="442" width="16" height="16" rx="2" fill="#111" stroke="#fff" stroke-width=".5" stroke-opacity=".9"/><circle cx="297" cy="447" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="303" cy="447" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="297" cy="453" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="303" cy="453" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="198" cy="548" r="1" fill="#fff" fill-opacity=".15"/><circle cx="202" cy="548" r="1" fill="#fff" fill-opacity=".15"/><circle cx="198" cy="552" r="1" fill="#fff" fill-opacity=".15"/><circle cx="202" cy="552" r="1" fill="#fff" fill-opacity=".15"/><path d="M850,115 L855,120 L850,125 L845,120 Z" fill="#111" stroke="#fff" stroke-width=".5" stroke-opacity=".18"/><rect x="1042" y="192" width="16" height="16" rx="2" fill="#111" stroke="#fff" stroke-width=".5" stroke-opacity=".9"/><circle cx="1047" cy="197" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="1053" cy="197" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="1047" cy="203" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="1053" cy="203" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="898" cy="448" r="1" fill="#fff" fill-opacity=".15"/><circle cx="902" cy="448" r="1" fill="#fff" fill-opacity=".15"/><circle cx="898" cy="452" r="1" fill="#fff" fill-opacity=".15"/><circle cx="902" cy="452" r="1" fill="#fff" fill-opacity=".15"/><path d="M1000,545 L1005,550 L1000,555 L995,550 Z" fill="#111" stroke="#fff" stroke-width=".5" stroke-opacity=".18"/><rect x="1192" y="172" width="16" height="16" rx="2" fill="#111" stroke="#fff" stroke-width=".5" stroke-opacity=".9"/><circle cx="1197" cy="177" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="1203" cy="177" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="1197" cy="183" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="1203" cy="183" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="-42" cy="378" r="1" fill="#fff" fill-opacity=".15"/><circle cx="-38" cy="378" r="1" fill="#fff" fill-opacity=".15"/><circle cx="-42" cy="382" r="1" fill="#fff" fill-opacity=".15"/><circle cx="-38" cy="382" r="1" fill="#fff" fill-opacity=".15"/><path d="M150,295 L155,300 L150,305 L145,300 Z" fill="#111" stroke="#fff" stroke-width=".5" stroke-opacity=".18"/><rect x="1042" y="372" width="16" height="16" rx="2" fill="#111" stroke="#fff" stroke-width=".5" stroke-opacity=".9"/><circle cx="1047" cy="377" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="1053" cy="377" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="1047" cy="383" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="1053" cy="383" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="1098" cy="298" r="1" fill="#fff" fill-opacity=".15"/><circle cx="1102" cy="298" r="1" fill="#fff" fill-opacity=".15"/><circle cx="1098" cy="302" r="1" fill="#fff" fill-opacity=".15"/><circle cx="1102" cy="302" r="1" fill="#fff" fill-opacity=".15"/><path d="M350,645 L355,650 L350,655 L345,650 Z" fill="#111" stroke="#fff" stroke-width=".5" stroke-opacity=".18"/><rect x="492" y="742" width="16" height="16" rx="2" fill="#111" stroke="#fff" stroke-width=".5" stroke-opacity=".9"/><circle cx="497" cy="747" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="503" cy="747" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="497" cy="753" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="503" cy="753" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="698" cy="748" r="1" fill="#fff" fill-opacity=".15"/><circle cx="702" cy="748" r="1" fill="#fff" fill-opacity=".15"/><circle cx="698" cy="752" r="1" fill="#fff" fill-opacity=".15"/><circle cx="702" cy="752" r="1" fill="#fff" fill-opacity=".15"/><path d="M850,645 L855,650 L850,655 L845,650 Z" fill="#111" stroke="#fff" stroke-width=".5" stroke-opacity=".18"/><rect x="1092" y="592" width="16" height="16" rx="2" fill="#111" stroke="#fff" stroke-width=".5" stroke-opacity=".9"/><circle cx="1097" cy="597" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="1103" cy="597" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="1097" cy="603" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="1103" cy="603" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="148" cy="598" r="1" fill="#fff" fill-opacity=".15"/><circle cx="152" cy="598" r="1" fill="#fff" fill-opacity=".15"/><circle cx="148" cy="602" r="1" fill="#fff" fill-opacity=".15"/><circle cx="152" cy="602" r="1" fill="#fff" fill-opacity=".15"/><path d="M-30,495 L-25,500 L-30,505 L-35,500 Z" fill="#111" stroke="#fff" stroke-width=".5" stroke-opacity=".18"/><rect x="1212" y="492" width="16" height="16" rx="2" fill="#111" stroke="#fff" stroke-width=".5" stroke-opacity=".9"/><circle cx="1217" cy="497" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="1223" cy="497" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="1217" cy="503" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="1223" cy="503" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="418" cy="278" r="1" fill="#fff" fill-opacity=".15"/><circle cx="422" cy="278" r="1" fill="#fff" fill-opacity=".15"/><circle cx="418" cy="282" r="1" fill="#fff" fill-opacity=".15"/><circle cx="422" cy="282" r="1" fill="#fff" fill-opacity=".15"/><path d="M780,275 L785,280 L780,285 L775,280 Z" fill="#111" stroke="#fff" stroke-width=".5" stroke-opacity=".18"/><rect x="412" y="512" width="16" height="16" rx="2" fill="#111" stroke="#fff" stroke-width=".5" stroke-opacity=".9"/><circle cx="417" cy="517" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="423" cy="517" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="417" cy="523" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="423" cy="523" r="1.2" fill="#fff" fill-opacity=".12"/><circle cx="778" cy="518" r="1" fill="#fff" fill-opacity=".15"/><circle cx="782" cy="518" r="1" fill="#fff" fill-opacity=".15"/><circle cx="778" cy="522" r="1" fill="#fff" fill-opacity=".15"/><circle cx="782" cy="522" r="1" fill="#fff" fill-opacity=".15"/><circle cx="100" cy="250" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="105" cy="250" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="110" cy="250" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="115" cy="250" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="100" cy="255" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="105" cy="255" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="110" cy="255" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="115" cy="255" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="100" cy="260" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="105" cy="260" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="110" cy="260" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="115" cy="260" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="250" cy="150" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="255" cy="150" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="260" cy="150" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="265" cy="150" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="250" cy="155" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="255" cy="155" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="260" cy="155" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="265" cy="155" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="250" cy="160" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="255" cy="160" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="260" cy="160" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="265" cy="160" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="1050" cy="250" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="1055" cy="250" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="1060" cy="250" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="1065" cy="250" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="1050" cy="255" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="1055" cy="255" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="1060" cy="255" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="1065" cy="255" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="1050" cy="260" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="1055" cy="260" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="1060" cy="260" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="1065" cy="260" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="950" cy="150" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="955" cy="150" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="960" cy="150" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="965" cy="150" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="950" cy="155" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="955" cy="155" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="960" cy="155" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="965" cy="155" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="950" cy="160" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="955" cy="160" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="960" cy="160" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="965" cy="160" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="100" cy="500" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="105" cy="500" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="110" cy="500" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="115" cy="500" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="100" cy="505" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="105" cy="505" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="110" cy="505" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="115" cy="505" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="100" cy="510" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="105" cy="510" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="110" cy="510" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="115" cy="510" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="250" cy="620" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="255" cy="620" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="260" cy="620" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="265" cy="620" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="250" cy="625" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="255" cy="625" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="260" cy="625" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="265" cy="625" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="250" cy="630" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="255" cy="630" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="260" cy="630" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="265" cy="630" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="1050" cy="500" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="1055" cy="500" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="1060" cy="500" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="1065" cy="500" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="1050" cy="505" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="1055" cy="505" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="1060" cy="505" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="1065" cy="505" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="1050" cy="510" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="1055" cy="510" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="1060" cy="510" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="1065" cy="510" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="950" cy="620" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="955" cy="620" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="960" cy="620" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="965" cy="620" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="950" cy="625" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="955" cy="625" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="960" cy="625" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="965" cy="625" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="950" cy="630" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="955" cy="630" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="960" cy="630" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="965" cy="630" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="450" cy="100" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="455" cy="100" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="460" cy="100" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="465" cy="100" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="450" cy="105" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="455" cy="105" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="460" cy="105" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="465" cy="105" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="450" cy="110" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="455" cy="110" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="460" cy="110" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="465" cy="110" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="750" cy="100" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="755" cy="100" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="760" cy="100" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="765" cy="100" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="750" cy="105" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="755" cy="105" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="760" cy="105" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="765" cy="105" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="750" cy="110" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="755" cy="110" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="760" cy="110" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="765" cy="110" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="450" cy="700" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="455" cy="700" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="460" cy="700" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="465" cy="700" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="450" cy="705" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="455" cy="705" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="460" cy="705" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="465" cy="705" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="450" cy="710" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="455" cy="710" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="460" cy="710" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="465" cy="710" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="750" cy="700" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="755" cy="700" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="760" cy="700" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="765" cy="700" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="750" cy="705" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="755" cy="705" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="760" cy="705" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="765" cy="705" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="750" cy="710" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="755" cy="710" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="760" cy="710" r=".8" fill="#fff" fill-opacity=".1"/><circle cx="765" cy="710" r=".8" fill="#fff" fill-opacity=".1"/><circle class="ai-node-b" cx="223" cy="300" r="4.5" fill="#c9a84c" stroke="none" opacity="0"/><circle class="ai-node-w" cx="175" cy="296" r="3" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="127" cy="292" r="3" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="79" cy="288" r="3" fill="none" stroke="#c9a84c" stroke-width="1.5" opacity="0"/><circle class="ai-node-b" cx="31" cy="284" r="4.5" fill="#fff" stroke="none" opacity="0"/><circle class="ai-node-w" cx="163" cy="360" r="2.5" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="116" cy="375" r="2.5" fill="none" stroke="#c9a84c" stroke-width="1.5" opacity="0"/><circle class="ai-node-b" cx="69" cy="390" r="4.5" fill="#fff" stroke="none" opacity="0"/><circle class="ai-node-w" cx="22" cy="405" r="2.5" fill="none" stroke="#c9a84c" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="-25" cy="420" r="2.5" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="203" cy="423" r="2.5" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-b" cx="163" cy="441" r="4" fill="#c9a84c" stroke="none" opacity="0"/><circle class="ai-node-w" cx="123" cy="459" r="2.5" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="83" cy="477" r="2.5" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-b" cx="43" cy="495" r="4" fill="#c9a84c" stroke="none" opacity="0"/><circle class="ai-node-b" cx="977" cy="300" r="4.5" fill="#c9a84c" stroke="none" opacity="0"/><circle class="ai-node-w" cx="1025" cy="296" r="3" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="1073" cy="292" r="3" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-b" cx="1121" cy="288" r="4.5" fill="#c9a84c" stroke="none" opacity="0"/><circle class="ai-node-w" cx="1169" cy="284" r="3" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="1037" cy="360" r="2.5" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="1084" cy="375" r="2.5" fill="none" stroke="#c9a84c" stroke-width="1.5" opacity="0"/><circle class="ai-node-b" cx="1131" cy="390" r="4.5" fill="#fff" stroke="none" opacity="0"/><circle class="ai-node-w" cx="1178" cy="405" r="2.5" fill="none" stroke="#c9a84c" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="1225" cy="420" r="2.5" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="997" cy="423" r="2.5" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-b" cx="1037" cy="441" r="4" fill="#c9a84c" stroke="none" opacity="0"/><circle class="ai-node-w" cx="1077" cy="459" r="2.5" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="1117" cy="477" r="2.5" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-b" cx="1157" cy="495" r="4" fill="#c9a84c" stroke="none" opacity="0"/><circle class="ai-node-b" cx="420" cy="188" r="4" fill="#fff" stroke="none" opacity="0"/><circle class="ai-node-w" cx="378" cy="160" r="2.5" fill="none" stroke="#c9a84c" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="336" cy="132" r="2.5" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="294" cy="104" r="2.5" fill="none" stroke="#c9a84c" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="567" cy="163" r="3" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="593" cy="128" r="3" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="619" cy="93" r="3" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="750" cy="188" r="2.5" fill="none" stroke="#c9a84c" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="808" cy="160" r="2.5" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="866" cy="132" r="2.5" fill="none" stroke="#c9a84c" stroke-width="1.5" opacity="0"/><circle class="ai-node-b" cx="924" cy="104" r="4" fill="#fff" stroke="none" opacity="0"/><circle class="ai-node-b" cx="420" cy="612" r="4" fill="#fff" stroke="none" opacity="0"/><circle class="ai-node-w" cx="378" cy="640" r="2.5" fill="none" stroke="#c9a84c" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="336" cy="668" r="2.5" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-b" cx="294" cy="696" r="4" fill="#c9a84c" stroke="none" opacity="0"/><circle class="ai-node-w" cx="567" cy="637" r="3" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="593" cy="672" r="3" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="619" cy="707" r="3" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="750" cy="612" r="2.5" fill="none" stroke="#c9a84c" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="808" cy="640" r="2.5" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-b" cx="866" cy="668" r="4" fill="#c9a84c" stroke="none" opacity="0"/><circle class="ai-node-w" cx="924" cy="696" r="2.5" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-b" cx="73" cy="275" r="3.5" fill="#fff" stroke="none" opacity="0"/><circle class="ai-node-w" cx="78" cy="293" r="2.5" fill="none" stroke="#c9a84c" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="1127" cy="275" r="2.5" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="1122" cy="293" r="2.5" fill="none" stroke="#c9a84c" stroke-width="1.5" opacity="0"/><circle class="ai-node-b" cx="73" cy="500" r="3.5" fill="#fff" stroke="none" opacity="0"/><circle class="ai-node-w" cx="78" cy="498" r="2.5" fill="none" stroke="#c9a84c" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="1127" cy="500" r="2.5" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="1122" cy="498" r="2.5" fill="none" stroke="#c9a84c" stroke-width="1.5" opacity="0"/><circle class="ai-node-b" cx="-82" cy="390" r="3.5" fill="#fff" stroke="none" opacity="0"/><circle class="ai-node-w" cx="-87" cy="387" r="2.5" fill="none" stroke="#c9a84c" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="1282" cy="390" r="2.5" fill="none" stroke="#fff" stroke-width="1.5" opacity="0"/><circle class="ai-node-w" cx="1287" cy="387" r="2.5" fill="none" stroke="#c9a84c" stroke-width="1.5" opacity="0"/><circle class="ai-dept" cx="-80" cy="120" r="20" fill="#c9a84c" fill-opacity="0" stroke="#c9a84c" stroke-width="2" stroke-opacity="0"/><circle class="ai-dept" cx="-80" cy="120" r="10" fill="#c9a84c" fill-opacity="0" stroke="#c9a84c" stroke-width="1" stroke-opacity="0"/><circle class="ai-dept-inner" cx="-80" cy="120" r="5" fill="#c9a84c" fill-opacity="0" opacity="0"/><text class="ai-dept-label" x="-80" y="90" font-size="13" fill="#c9a84c" fill-opacity="0" text-anchor="middle" font-family="monospace" letter-spacing="3" font-weight="bold">SOURCING</text><circle class="ai-dept" cx="1280" cy="100" r="20" fill="#c9a84c" fill-opacity="0" stroke="#c9a84c" stroke-width="2" stroke-opacity="0"/><circle class="ai-dept" cx="1280" cy="100" r="10" fill="#c9a84c" fill-opacity="0" stroke="#c9a84c" stroke-width="1" stroke-opacity="0"/><circle class="ai-dept-inner" cx="1280" cy="100" r="5" fill="#c9a84c" fill-opacity="0" opacity="0"/><text class="ai-dept-label" x="1280" y="70" font-size="13" fill="#c9a84c" fill-opacity="0" text-anchor="middle" font-family="monospace" letter-spacing="3" font-weight="bold">LOGISTICS</text><circle class="ai-dept" cx="-100" cy="350" r="20" fill="#fff" fill-opacity="0" stroke="#fff" stroke-width="2" stroke-opacity="0"/><circle class="ai-dept" cx="-100" cy="350" r="10" fill="#fff" fill-opacity="0" stroke="#fff" stroke-width="1" stroke-opacity="0"/><circle class="ai-dept-inner" cx="-100" cy="350" r="5" fill="#fff" fill-opacity="0" opacity="0"/><text class="ai-dept-label" x="-100" y="320" font-size="13" fill="#fff" fill-opacity="0" text-anchor="middle" font-family="monospace" letter-spacing="3" font-weight="bold">FORECASTING</text><circle class="ai-dept" cx="-90" cy="520" r="20" fill="#c9a84c" fill-opacity="0" stroke="#c9a84c" stroke-width="2" stroke-opacity="0"/><circle class="ai-dept" cx="-90" cy="520" r="10" fill="#c9a84c" fill-opacity="0" stroke="#c9a84c" stroke-width="1" stroke-opacity="0"/><circle class="ai-dept-inner" cx="-90" cy="520" r="5" fill="#c9a84c" fill-opacity="0" opacity="0"/><text class="ai-dept-label" x="-90" y="490" font-size="13" fill="#c9a84c" fill-opacity="0" text-anchor="middle" font-family="monospace" letter-spacing="3" font-weight="bold">SCHEDULING</text><circle class="ai-dept" cx="1300" cy="320" r="20" fill="#fff" fill-opacity="0" stroke="#fff" stroke-width="2" stroke-opacity="0"/><circle class="ai-dept" cx="1300" cy="320" r="10" fill="#fff" fill-opacity="0" stroke="#fff" stroke-width="1" stroke-opacity="0"/><circle class="ai-dept-inner" cx="1300" cy="320" r="5" fill="#fff" fill-opacity="0" opacity="0"/><text class="ai-dept-label" x="1300" y="290" font-size="13" fill="#fff" fill-opacity="0" text-anchor="middle" font-family="monospace" letter-spacing="3" font-weight="bold">MONITORING</text><circle class="ai-dept" cx="1280" cy="520" r="20" fill="#c9a84c" fill-opacity="0" stroke="#c9a84c" stroke-width="2" stroke-opacity="0"/><circle class="ai-dept" cx="1280" cy="520" r="10" fill="#c9a84c" fill-opacity="0" stroke="#c9a84c" stroke-width="1" stroke-opacity="0"/><circle class="ai-dept-inner" cx="1280" cy="520" r="5" fill="#c9a84c" fill-opacity="0" opacity="0"/><text class="ai-dept-label" x="1280" y="490" font-size="13" fill="#c9a84c" fill-opacity="0" text-anchor="middle" font-family="monospace" letter-spacing="3" font-weight="bold">ANALYTICS</text><circle class="ai-dept" cx="200" cy="870" r="20" fill="#fff" fill-opacity="0" stroke="#fff" stroke-width="2" stroke-opacity="0"/><circle class="ai-dept" cx="200" cy="870" r="10" fill="#fff" fill-opacity="0" stroke="#fff" stroke-width="1" stroke-opacity="0"/><circle class="ai-dept-inner" cx="200" cy="870" r="5" fill="#fff" fill-opacity="0" opacity="0"/><text class="ai-dept-label" x="200" y="840" font-size="13" fill="#fff" fill-opacity="0" text-anchor="middle" font-family="monospace" letter-spacing="3" font-weight="bold">INVENTORY</text><circle class="ai-dept" cx="600" cy="890" r="20" fill="#fff" fill-opacity="0" stroke="#fff" stroke-width="2" stroke-opacity="0"/><circle class="ai-dept" cx="600" cy="890" r="10" fill="#fff" fill-opacity="0" stroke="#fff" stroke-width="1" stroke-opacity="0"/><circle class="ai-dept-inner" cx="600" cy="890" r="5" fill="#fff" fill-opacity="0" opacity="0"/><text class="ai-dept-label" x="600" y="860" font-size="13" fill="#fff" fill-opacity="0" text-anchor="middle" font-family="monospace" letter-spacing="3" font-weight="bold">COMPLIANCE</text><circle class="ai-dept" cx="1000" cy="870" r="20" fill="#c9a84c" fill-opacity="0" stroke="#c9a84c" stroke-width="2" stroke-opacity="0"/><circle class="ai-dept" cx="1000" cy="870" r="10" fill="#c9a84c" fill-opacity="0" stroke="#c9a84c" stroke-width="1" stroke-opacity="0"/><circle class="ai-dept-inner" cx="1000" cy="870" r="5" fill="#c9a84c" fill-opacity="0" opacity="0"/><text class="ai-dept-label" x="1000" y="840" font-size="13" fill="#c9a84c" fill-opacity="0" text-anchor="middle" font-family="monospace" letter-spacing="3" font-weight="bold">TRACEABILITY</text></svg>';
     target.appendChild(chipWrap);
 
-    // ----- Set all SVG elements to their fully-revealed state (they start hidden) -----
-    var scFlow = chipWrap;
-    scFlow.querySelectorAll('.ai-trace').forEach(function(p){ p.style.strokeDashoffset = '0'; });
-    scFlow.querySelectorAll('.ai-node-b, .ai-node-w').forEach(function(n){ n.style.opacity = '1'; });
-    scFlow.querySelectorAll('.ai-dept').forEach(function(d){
-      d.setAttribute('fill-opacity','0.12');
-      d.setAttribute('stroke-opacity','0.8');
-    });
-    scFlow.querySelectorAll('.ai-dept-inner').forEach(function(d){
-      d.style.opacity = '1';
-      d.setAttribute('fill-opacity','1');
-    });
-    scFlow.querySelectorAll('.ai-dept-label').forEach(function(d){
-      d.setAttribute('fill-opacity','1');
-    });
-    scFlow.querySelectorAll('.ai-mod-card').forEach(function(m){
-      m.style.opacity = '1';
-      m.style.transform = 'translateY(0)';
-    });
-    var circBg = scFlow.querySelector('.ai-circ-bg');
+    var chipSvg = document.getElementById('ai-chip-svg');
+
+    // ── Reveal all elements to drawn state (graceful degradation if GSAP fails) ──
+    var paths = chipWrap.querySelectorAll('.ai-trace');
+    var nodesAll = chipWrap.querySelectorAll('.ai-node-b, .ai-node-w');
+    var deptRings = chipWrap.querySelectorAll('.ai-dept');
+    var deptInner = chipWrap.querySelectorAll('.ai-dept-inner');
+    var deptLabels = chipWrap.querySelectorAll('.ai-dept-label');
+    var modCards = chipWrap.querySelectorAll('.ai-mod-card');
+    var circBg = chipWrap.querySelector('.ai-circ-bg');
+
+    paths.forEach(function(p){ p.style.strokeDashoffset = '0'; });
+    nodesAll.forEach(function(n){ n.style.opacity = '1'; });
+    deptRings.forEach(function(d){ d.setAttribute('fill-opacity','0.12'); d.setAttribute('stroke-opacity','0.8'); });
+    deptInner.forEach(function(d){ d.style.opacity = '1'; d.setAttribute('fill-opacity','1'); });
+    deptLabels.forEach(function(d){ d.setAttribute('fill-opacity','1'); });
+    modCards.forEach(function(m){ m.style.opacity = '1'; });
     if (circBg) circBg.style.opacity = '0.4';
 
-    // ----- Ping-pong video player below the chip -----
-    var videoWrap = document.createElement('div');
-    videoWrap.className = 'sc-video-player';
-    videoWrap.style.cssText = 'position:relative;width:100%;max-width:1400px;margin:48px auto 0;aspect-ratio:16/9;background:#000;overflow:hidden;border-radius:12px';
+    // ── Ping-pong video player ──
+    var pinVidWrap = document.createElement('div');
+    pinVidWrap.className = 'pin-vid-wrap';
+    pinVidWrap.style.cssText = 'position:absolute;inset:0;z-index:20;overflow:hidden;display:none;background:#000';
+    sec.appendChild(pinVidWrap);
 
     var base = 'https://lynz-tonomi.github.io/macrobrands/';
-    var segments = [base+'sc_01.mp4', base+'sc_02.mp4', base+'sc_03.mp4', base+'sc_04.mp4', base+'sc_05.mp4', base+'sc_06.mp4', base+'sc_07.mp4'];
+    var segments = [base+'sc_01.mp4',base+'sc_02.mp4',base+'sc_03.mp4',base+'sc_04.mp4',base+'sc_05.mp4',base+'sc_06.mp4',base+'sc_07.mp4'];
     var idx = 0;
-
-    var a = document.createElement('video');
-    var b = document.createElement('video');
-    [a, b].forEach(function(v) {
-      v.muted = true;
-      v.playsInline = true;
-      v.preload = 'auto';
-      v.setAttribute('muted', '');
-      v.setAttribute('playsinline', '');
+    var vidA = document.createElement('video');
+    var vidB = document.createElement('video');
+    [vidA, vidB].forEach(function(v){
+      v.muted = true; v.playsInline = true; v.preload = 'auto';
+      v.setAttribute('muted',''); v.setAttribute('playsinline','');
       v.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .3s';
-      videoWrap.appendChild(v);
+      pinVidWrap.appendChild(v);
     });
-    a.style.opacity = '1';
-    b.style.opacity = '0';
-    a.src = segments[0];
-    a.load();
-
-    function preloadNext(back) {
-      var n = (idx + 1) % segments.length;
-      back.src = segments[n];
-      back.load();
+    vidA.style.opacity = '1'; vidB.style.opacity = '0';
+    vidA.src = segments[0]; vidA.load();
+    function preloadNext(back){ var n=(idx+1)%segments.length; back.src=segments[n]; back.load(); }
+    preloadNext(vidB);
+    var frontVid = vidA, backVid = vidB;
+    function onVidEnd(){
+      idx = (idx+1) % segments.length;
+      backVid.currentTime = 0; backVid.play().catch(function(){});
+      backVid.style.opacity = '1'; frontVid.style.opacity = '0';
+      var t = frontVid; frontVid = backVid; backVid = t;
+      setTimeout(function(){ preloadNext(backVid); }, 300);
     }
-    preloadNext(b);
+    vidA.addEventListener('ended', onVidEnd);
+    vidB.addEventListener('ended', onVidEnd);
 
-    var front = a, back = b;
-    function onEnd() {
-      idx = (idx + 1) % segments.length;
-      back.currentTime = 0;
-      back.play().catch(function(){});
-      back.style.opacity = '1';
-      front.style.opacity = '0';
-      var t = front; front = back; back = t;
-      setTimeout(function(){ preloadNext(back); }, 300);
+    // ── White overlay for fade transition ──
+    var whiteOverlay = document.createElement('div');
+    whiteOverlay.style.cssText = 'position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:15';
+    sec.appendChild(whiteOverlay);
+
+    // ── Wait for GSAP (loaded by lynz-sc.js) then build cinematic timeline ──
+    function waitForGSAP(cb){
+      if (window.gsap && window.ScrollTrigger) { gsap.registerPlugin(ScrollTrigger); return cb(); }
+      var poll = setInterval(function(){
+        if (window.gsap && window.ScrollTrigger) { clearInterval(poll); gsap.registerPlugin(ScrollTrigger); cb(); }
+      }, 100);
     }
-    a.addEventListener('ended', onEnd);
-    b.addEventListener('ended', onEnd);
-    a.play().catch(function(){});
 
-    sec.appendChild(videoWrap);
+    waitForGSAP(function(){
+      // ── Reset SVG elements to animation-start state ──
+      // (They were set to "revealed" above for no-JS fallback; now hide for animation)
+      paths.forEach(function(p){
+        var len = p.getTotalLength();
+        p.style.strokeDasharray = len;
+        p.style.strokeDashoffset = len;
+      });
+      gsap.set(nodesAll, { opacity: 0 });
+      gsap.set(deptRings, { attr: {'fill-opacity': 0, 'stroke-opacity': 0} });
+      gsap.set(deptInner, { opacity: 0, attr: {'fill-opacity': 0} });
+      gsap.set(deptLabels, { attr: {'fill-opacity': 0} });
+      gsap.set(modCards, { opacity: 0, y: 12 });
+      if (circBg) gsap.set(circBg, { opacity: 0 });
+
+      // ── Charge/particle animation setup ──
+      var chargeGroup = document.createElementNS('http://www.w3.org/2000/svg','g');
+      chargeGroup.setAttribute('class','ai-charges');
+      chargeGroup.style.opacity = '0';
+      chipSvg.appendChild(chargeGroup);
+      var chargeActive = false;
+      var chargeDots = [];
+      paths.forEach(function(p, pi){
+        if (pi % 2 !== 0) return;
+        var isGold = p.getAttribute('stroke') === '#c9a84c';
+        var color = isGold ? '#c9a84c' : '#fff';
+        var len = p.getTotalLength();
+        if (len < 80) return;
+        for (var ci = 0; ci < 2; ci++){
+          var dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+          dot.setAttribute('r', isGold ? '3' : '2.5');
+          dot.setAttribute('fill', color);
+          dot.setAttribute('filter','url(#aig)');
+          dot.style.opacity = '0.9';
+          chargeGroup.appendChild(dot);
+          var halo = document.createElementNS('http://www.w3.org/2000/svg','circle');
+          halo.setAttribute('r', isGold ? '7' : '5');
+          halo.setAttribute('fill', color);
+          halo.setAttribute('opacity', isGold ? '0.25' : '0.15');
+          halo.setAttribute('filter','url(#aig)');
+          chargeGroup.appendChild(halo);
+          chargeDots.push({dot:dot,halo:halo,path:p,len:len,offset:ci*0.5+Math.random()*0.3,speed:0.3+Math.random()*0.4});
+        }
+      });
+      // Chip pin sparks
+      var sparkPins=[
+        {x:548,y:298},{x:572,y:298},{x:596,y:298},{x:620,y:298},{x:644,y:298},
+        {x:548,y:502},{x:572,y:502},{x:596,y:502},{x:620,y:502},{x:644,y:502},
+        {x:498,y:345},{x:498,y:375},{x:498,y:405},{x:498,y:435},{x:498,y:460},
+        {x:702,y:345},{x:702,y:375},{x:702,y:405},{x:702,y:435},{x:702,y:460}
+      ];
+      sparkPins.forEach(function(sp){
+        var spark = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        spark.setAttribute('cx',sp.x); spark.setAttribute('cy',sp.y);
+        spark.setAttribute('r','2'); spark.setAttribute('fill','#fff');
+        spark.setAttribute('filter','url(#aig)');
+        chargeGroup.appendChild(spark);
+        gsap.to(spark,{attr:{r:4},opacity:0,duration:0.2,repeat:-1,repeatDelay:0.5+Math.random()*2,yoyo:false,ease:'power2.out',delay:Math.random()*3});
+      });
+      // RAF loop
+      function animateCharges(time){
+        if (!chargeActive){ requestAnimationFrame(animateCharges); return; }
+        var t = time * 0.001;
+        chargeDots.forEach(function(c){
+          var pos = ((t*c.speed + c.offset) % 1) * c.len;
+          try {
+            var pt = c.path.getPointAtLength(pos);
+            c.dot.setAttribute('cx',pt.x); c.dot.setAttribute('cy',pt.y);
+            c.halo.setAttribute('cx',pt.x); c.halo.setAttribute('cy',pt.y);
+          } catch(e){}
+        });
+        requestAnimationFrame(animateCharges);
+      }
+      requestAnimationFrame(animateCharges);
+
+      // ── Build GSAP scroll-driven timeline ──
+      var pinSec = sec;
+      var tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: chipWrap,
+          start: 'center center',
+          end: '+=250%',
+          scrub: 0.5,
+          pin: pinSec,
+          pinSpacing: true,
+          anticipatePin: 1
+        }
+      });
+
+      // Phase 1 (0-3): Traces expand outward + zoom begins simultaneously
+      tl.to(paths, { strokeDashoffset: 0, ease:'none', stagger: 0.003, duration: 3 }, 0);
+      tl.to(chipWrap, { scale: 6, ease:'power2.in', duration: 6 }, 0);
+
+      // Phase 2 (0.5-2.5): Nodes + module cards reveal
+      tl.to(nodesAll, { opacity: 1, ease:'none', duration: 2 }, 0.5);
+      tl.to(modCards, { opacity: 1, y: 0, ease:'power2.out', duration: 1.5, stagger: 0.05 }, 1.5);
+
+      // Phase 3 (2.5-4): Circuit background image + dept rings + charges activate
+      if (circBg) tl.to(circBg, { opacity: 0.6, ease:'power1.out', duration: 1.5 }, 2.5);
+      tl.to(deptRings, { attr:{'fill-opacity':0.12,'stroke-opacity':0.8}, stagger:0.03, duration: 1.5 }, 2.5);
+      tl.to(deptInner, { opacity:1, attr:{'fill-opacity':1}, stagger:0.03, duration: 1.5 }, 2.5);
+      tl.to(deptLabels, { attr:{'fill-opacity':1}, stagger:0.02, duration: 1 }, 3);
+      tl.to(chargeGroup, { opacity:1, ease:'none', duration:0.8, onStart:function(){ chargeActive=true; } }, 3);
+
+      // Phase 4 (3.5-5): Cards fade out + header text fades
+      tl.to(modCards, { opacity: 0, duration: 1, stagger: 0.03 }, 3.5);
+      if (hdr) {
+        tl.to(hdr.querySelectorAll('h2, p, .sc-badge, .sc-learn-more-btn'), { opacity: 0, duration: 1 }, 4);
+      }
+
+      // Phase 5 (5-6.5): Fade to WHITE
+      tl.to(whiteOverlay, { opacity: 1, ease:'power2.in', duration: 1.5 }, 5);
+
+      // Phase 6 (6.5-8): Video fades in FROM white
+      tl.add(function(){
+        pinVidWrap.style.display = 'block';
+        pinVidWrap.style.opacity = '0';
+      }, 6.49);
+      tl.to(pinVidWrap, { opacity: 1, ease:'power2.out', duration: 1.5,
+        onStart: function(){
+          vidA.currentTime = 0;
+          vidA.play().catch(function(){});
+        }
+      }, 6.5);
+      tl.to(whiteOverlay, { opacity: 0, ease:'power2.out', duration: 1.5 }, 6.5);
+
+      // Phase 7 (8-9.5): Hold — user watches video
+      tl.to({}, { duration: 1.5 }, 8);
+
+      // Pin-spacer bg fix
+      requestAnimationFrame(function(){
+        if (pinSec.parentElement && pinSec.parentElement.classList.contains('pin-spacer')){
+          pinSec.parentElement.style.backgroundColor = '#0a0a0a';
+        }
+      });
+
+      // Refresh after everything settled
+      setTimeout(function(){ ScrollTrigger.refresh(); }, 500);
+    });
   }
 
-  function ready() {
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(function(){ requestAnimationFrame(function(){ setTimeout(go, 100); }); });
+  // ── Wait for full page load + fonts before running anything ──
+  function ready(){
+    if (document.fonts && document.fonts.ready){
+      document.fonts.ready.then(function(){ requestAnimationFrame(function(){ setTimeout(go, 200); }); });
     } else {
-      requestAnimationFrame(function(){ setTimeout(go, 100); });
+      requestAnimationFrame(function(){ setTimeout(go, 200); });
     }
   }
-
-  if (document.readyState === 'complete') {
-    ready();
-  } else {
-    window.addEventListener('load', ready);
-  }
+  if (document.readyState === 'complete') { ready(); }
+  else { window.addEventListener('load', ready); }
 })();
